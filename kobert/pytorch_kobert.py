@@ -24,7 +24,6 @@ from transformers import BertModel, BertConfig
 # from pytorch_pretrained_bert import BertModel, BertConfig
 import gluonnlp as nlp
 
-from .utils import download as _download
 
 kobert_models = {
     'pytorch_kobert': {
@@ -43,21 +42,20 @@ kobert_models = {
 
 
 bert_config = {'attention_probs_dropout_prob': 0.1,
- 'hidden_act': 'gelu',
- 'hidden_dropout_prob': 0.1,
- 'hidden_size': 768,
- 'initializer_range': 0.02,
- 'intermediate_size': 3072,
- 'max_position_embeddings': 512,
- 'num_attention_heads': 12,
- 'num_hidden_layers': 12,
- 'type_vocab_size': 2,
- 'vocab_size': 8002}
+               'hidden_act': 'gelu',
+               'hidden_dropout_prob': 0.1,
+               'hidden_size': 768,
+               'initializer_range': 0.02,
+               'intermediate_size': 3072,
+               'max_position_embeddings': 512,
+               'num_attention_heads': 12,
+               'num_hidden_layers': 12,
+               'type_vocab_size': 2,
+               'vocab_size': 8002}
 
 
-
-def get_pytorch_kobert_model(ctx='cpu',
-                           cachedir='./ptr_lm_model'):
+def get_pytorch_kobert_model(ctx='cuda',
+                             cachedir='./ptr_lm_model'):
     # download model
     model_info = kobert_models['pytorch_kobert']
     model_path = _download(model_info['url'],
@@ -73,13 +71,13 @@ def get_pytorch_kobert_model(ctx='cpu',
     return get_kobert_model(model_path, vocab_path, ctx)
 
 
+def get_kobert_model(model_file, vocab_file, ctx="cuda:0"):
 
-def get_kobert_model(model_file, vocab_file, ctx="cpu"):
+    bertmodel = BertModel.from_pretrained(model_file, return_dict=False)
     bertmodel = BertModel(config=BertConfig.from_dict(bert_config))
-    bertmodel.load_state_dict(torch.load(model_file), strict=False)
     device = torch.device(ctx)
     bertmodel.to(device)
     bertmodel.eval()
-    vocab_b_obj = nlp.vocab.BERTVocab.from_json(
-        open(vocab_file, 'rt').read())
+    vocab_b_obj = nlp.vocab.BERTVocab.from_sentencepiece(vocab_file,
+                                                         padding_token='[PAD]')
     return bertmodel, vocab_b_obj

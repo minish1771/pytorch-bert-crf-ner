@@ -1,7 +1,7 @@
 {
   "hidden_size": 768,
-  "maxlen" : 30,
-  "epochs": 10,
+  "maxlen": 30,
+  "epochs": 12,
   "batch_size": 256,
   "dropout": 0.1,
   "learning_rate": 5e-5,

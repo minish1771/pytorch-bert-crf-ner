@@ -17,6 +17,7 @@ import os
 import sys
 import requests
 import hashlib
+from time import sleep
 
 kobert_models = {
     'onnx_kobert': {
@@ -75,11 +76,12 @@ def get_onnx(cachedir='./ptr_lm_model'):
                     model_info['chksum'],
                     cachedir=cachedir)
 
+
 def get_tokenizer(cachedir='./ptr_lm_model'):
     """Get KoBERT Tokenizer file path after downloading
     """
     model_info = kobert_models['tokenizer']
     return download(model_info['url'],
-                        model_info['fname'],
-                        model_info['chksum'],
-                        cachedir=cachedir)    
+                    model_info['fname'],
+                    model_info['chksum'],
+                    cachedir=cachedir)
