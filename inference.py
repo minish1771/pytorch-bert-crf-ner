@@ -18,7 +18,8 @@ def main(parser):
     args = parser.parse_args()
     model_dir = Path(args.model_dir)
     model_config = Config(json_path=model_dir / 'config.json')
-
+    csv_path = args.get_csv_path
+    print("test : ", csv_path)
     # Vocab & Tokenizer
     # tok_path = get_tokenizer() # ./tokenizer_78b3253a26.model
     tok_path = "./ptr_lm_model/tokenizer_78b3253a26.model"
@@ -49,7 +50,7 @@ def main(parser):
 
     # checkpoint = torch.load("./experiments/base_model_with_crf/best-epoch-16-step-1500-acc-0.993.bin", map_location=torch.device('cpu'))
     checkpoint = torch.load(
-        "./experiments/base_model_with_crf/best-epoch-17-step-200-acc-0.633.bin", map_location=torch.device('cuda'))
+        "./experiments/base_model_with_crf/best-epoch-12-step-1000-acc-0.888.bin", map_location=torch.device('cuda'))
     # checkpoint = torch.load("./experiments/base_model_with_bilstm_crf/best-epoch-15-step-2750-acc-0.992.bin", map_location=torch.device('cpu'))
     # checkpoint = torch.load("./experiments/base_model_with_bigru_crf/model-epoch-18-step-3250-acc-0.997.bin", map_location=torch.device('cpu'))
 
@@ -74,26 +75,27 @@ def main(parser):
     decoder_from_res = DecoderFromNamedEntitySequence(
         tokenizer=tokenizer, index_to_ner=index_to_ner)
 
-    while (True):
-        input_text = input("문장을 입력하세요: ")
-        list_of_input_ids = tokenizer.list_of_string_to_list_of_cls_sep_token_ids([
-                                                                                  input_text])
-        x_input = torch.tensor(list_of_input_ids).long().to(device)
+    input_text = input("문장을 입력하세요: ")
+    list_of_input_ids = tokenizer.list_of_string_to_list_of_cls_sep_token_ids([
+        input_text])
+    x_input = torch.tensor(list_of_input_ids).long().to(device)
 
-        # for bert alone
-        # y_pred = model(x_input)
-        # list_of_pred_ids = y_pred.max(dim=-1)[1].tolist()
+    # for bert alone
+    # y_pred = model(x_input)
+    # list_of_pred_ids = y_pred.max(dim=-1)[1].tolist()
 
-        # for bert crf
-        list_of_pred_ids = model(x_input)
+    # for bert crf
+    list_of_pred_ids = model(x_input)
 
-        # for bert bilstm crf & bert bigru crf
-        # list_of_pred_ids = model(x_input, using_pack_sequence=False)
+    # for bert bilstm crf & bert bigru crf
+    # list_of_pred_ids = model(x_input, using_pack_sequence=False)
 
-        list_of_ner_word, decoding_ner_sentence = decoder_from_res(
-            list_of_input_ids=list_of_input_ids, list_of_pred_ids=list_of_pred_ids)
-        print("list_of_ner_word:", list_of_ner_word)
-        print("decoding_ner_sentence:", decoding_ner_sentence)
+    list_of_ner_word, decoding_ner_sentence = decoder_from_res(
+        list_of_input_ids=list_of_input_ids, list_of_pred_ids=list_of_pred_ids)
+    print("list_of_ner_word:", list_of_ner_word)
+    print("decoding_ner_sentence:", decoding_ner_sentence)
+    loc_list = [list(i["word"] for i in list_of_ner_word if i['tag'] == 'LOC')]
+    print("test ", loc_list)
 
 
 class DecoderFromNamedEntitySequence():
@@ -174,11 +176,13 @@ class DecoderFromNamedEntitySequence():
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--get_csv_path", type=str)
     parser.add_argument('--data_dir', default='./data_in',
                         help="Directory containing config.json of data")
     # parser.add_argument('--model_dir', default='./experiments/base_model', help="Directory containing config.json of model")
     parser.add_argument('--model_dir', default='./experiments/base_model_with_crf',
                         help="Directory containing config.json of model")
+
     # parser.add_argument('--model_dir', default='./experiments/base_model_with_crf', help="Directory containing config.json of model")
     # parser.add_argument('--model_dir', default='./experiments/base_model_with_bilstm_crf', help="Directory containing config.json of model")
     # parser.add_argument('--model_dir', default='./experiments/base_model_with_bigru_crf', help="Directory containing config.json of model")
