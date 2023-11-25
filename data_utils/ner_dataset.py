@@ -37,7 +37,6 @@ class NamedEntityRecognitionDataset(Dataset):
         self.create_ner_dict(list_of_total_target_str)
         self._corpus = list_of_total_source_str
         self._label = list_of_total_target_str
-        print("num is", number_data)
 
     def set_transform_fn(self, transform_source_fn, transform_target_fn):
         self._transform_source_fn = transform_source_fn
@@ -99,7 +98,6 @@ class NamedEntityRecognitionDataset(Dataset):
             train_data_dir) if '.txt' in file_name]
         list_of_full_file_path = [train_data_dir /
                                   file_name for file_name in list_of_file_name]
-        print("num of files: ", len(list_of_full_file_path))
 
         list_of_total_source_no, list_of_total_source_str, list_of_total_target_str = [], [], []
         for i, full_file_path in enumerate(list_of_full_file_path):
@@ -115,17 +113,14 @@ class NamedEntityRecognitionDataset(Dataset):
     def load_data_from_txt(self, file_full_name):
         with codecs.open(file_full_name, "r", "utf-8") as io:
             lines = io.readlines()
-
             # parsing에 문제가 있어서 아래 3개 변수 도입!
-            prev_line = ""
+            prev_line = 'first'
             save_flag = False
             count = 0
             sharp_lines = []
-            list_of_source_no = list()
-            list_of_source_str = list()
-            list_of_target_str = list()
+
             for line in lines:
-                if prev_line == "\n" or prev_line == "":
+                if prev_line.isspace() or prev_line == 'first':
                     save_flag = True
                 if line[:3] == "## " and save_flag is True:
                     count += 1
@@ -134,10 +129,10 @@ class NamedEntityRecognitionDataset(Dataset):
                     count = 0
                     save_flag = False
                 prev_line = line
-                list_of_source_no.append(sharp_lines[0::3])
-                list_of_source_str.append(sharp_lines[1::3])
-                list_of_target_str.append(sharp_lines[2::3])
-            print("list_len", len(list_of_source_no))
+
+            list_of_source_no, list_of_source_str, list_of_target_str = sharp_lines[
+                0::3], sharp_lines[1::3], sharp_lines[2::3]
+
         return list_of_source_no, list_of_source_str, list_of_target_str
 
 
